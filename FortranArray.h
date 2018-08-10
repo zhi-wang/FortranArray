@@ -1,7 +1,7 @@
 // -*- C++ -*-
 
-#ifndef fortran_array_h
-#define fortran_array_h
+#ifndef FortranArray_h
+#define FortranArray_h
 
 #include <array>
 #include <cassert>
@@ -1371,4 +1371,4 @@ public:
 };
 } // namespace fa
 
-#endif /* fortran_array_h */
+#endif /* FortranArray_h */

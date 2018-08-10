@@ -1,4 +1,4 @@
-#include "fortran.array.h"
+#include "FortranArray.h"
 #include <catch2/catch.hpp>
 using namespace fa;
 
