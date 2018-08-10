@@ -41,11 +41,11 @@ TEST_CASE("range tests", "[range]")
   {
     constexpr auto size = 42;
     constexpr auto st1 = 0;
-    constexpr auto rf1 = range::_(st1, size);
+    constexpr auto rf1 = ext(st1, size);
     constexpr auto st2 = 7;
-    constexpr auto rf2 = range::_(st2, size);
+    constexpr auto rf2 = ext(st2, size);
     constexpr auto st3 = -4;
-    constexpr auto rf3 = range::_(st3, size);
+    constexpr auto rf3 = ext(st3, size);
     REQUIRE(rf1.front() == st1);
     REQUIRE(rf2.front() == st2);
     REQUIRE(rf3.front() == st3);
@@ -60,7 +60,7 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("1 dimensional starts from 0")
   {
     constexpr auto start = 0;
-    constexpr auto rf1 = range::_(start, 2);
+    constexpr auto rf1 = ext(start, 2);
     REQUIRE(rf1.front() == start);
     REQUIRE(rf1.back() == -1 + start + 2);
 
@@ -85,7 +85,7 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("1 dimensional starts from 5")
   {
     constexpr auto start = 5;
-    constexpr auto rf1 = range::_(start, 2);
+    constexpr auto rf1 = ext(start, 2);
 
     dimension<int, rf1> ff;
     const int size = 2;
@@ -108,7 +108,7 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("1 dimensional starts from -4")
   {
     constexpr auto start = -4;
-    constexpr auto rf1 = range::_(start, 2);
+    constexpr auto rf1 = ext(start, 2);
 
     dimension<int, rf1> ff;
     const int size = 2;
@@ -131,8 +131,8 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("2 dimensional starts from 0")
   {
     constexpr auto start = 0;
-    constexpr auto rf1 = range::_(start, 2);
-    constexpr auto rf2 = range::_(start, 3);
+    constexpr auto rf1 = ext(start, 2);
+    constexpr auto rf2 = ext(start, 3);
 
     dimension<int, rf2, rf1> ff;
     const int size = 6;
@@ -157,8 +157,8 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("2 dimensional starts from 5")
   {
     constexpr auto start = 5;
-    constexpr auto rf1 = range::_(start, 2);
-    constexpr auto rf2 = range::_(start, 3);
+    constexpr auto rf1 = ext(start, 2);
+    constexpr auto rf2 = ext(start, 3);
 
     dimension<int, rf2, rf1> ff;
     const int size = 6;
@@ -183,8 +183,8 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("2 dimensional starts from -4")
   {
     constexpr auto start = -4;
-    constexpr auto rf1 = range::_(start, 2);
-    constexpr auto rf2 = range::_(start, 3);
+    constexpr auto rf1 = ext(start, 2);
+    constexpr auto rf2 = ext(start, 3);
 
     dimension<int, rf2, rf1> ff;
     const int size = 6;
@@ -209,10 +209,10 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("4 dimensional starts from 0")
   {
     constexpr auto start = 0;
-    constexpr auto rf1 = range::_(start, 2);
-    constexpr auto rf2 = range::_(start, 3);
-    constexpr auto rf3 = range::_(start, 4);
-    constexpr auto rf4 = range::_(start, 5);
+    constexpr auto rf1 = ext(start, 2);
+    constexpr auto rf2 = ext(start, 3);
+    constexpr auto rf3 = ext(start, 4);
+    constexpr auto rf4 = ext(start, 5);
 
     dimension<int, rf4, rf3, rf2, rf1> ff;
     const int size = 120;
@@ -241,10 +241,10 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("4 dimensional starts from 5")
   {
     constexpr auto start = 5;
-    constexpr auto rf1 = range::_(start, 2);
-    constexpr auto rf2 = range::_(start, 3);
-    constexpr auto rf3 = range::_(start, 4);
-    constexpr auto rf4 = range::_(start, 5);
+    constexpr auto rf1 = ext(start, 2);
+    constexpr auto rf2 = ext(start, 3);
+    constexpr auto rf3 = ext(start, 4);
+    constexpr auto rf4 = ext(start, 5);
 
     dimension<int, rf4, rf3, rf2, rf1> ff;
     const int size = 120;
@@ -273,10 +273,10 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("4 dimensional starts from -4")
   {
     constexpr auto start = -4;
-    constexpr auto rf1 = range::_(start, 2);
-    constexpr auto rf2 = range::_(start, 3);
-    constexpr auto rf3 = range::_(start, 4);
-    constexpr auto rf4 = range::_(start, 5);
+    constexpr auto rf1 = ext(start, 2);
+    constexpr auto rf2 = ext(start, 3);
+    constexpr auto rf3 = ext(start, 4);
+    constexpr auto rf4 = ext(start, 5);
 
     dimension<int, rf4, rf3, rf2, rf1> ff;
     const int size = 120;
@@ -377,7 +377,7 @@ TEST_CASE("c/c++-like array", "[array]")
   {
     constexpr int start = 5;
     constexpr int size = 2;
-    tensor<int, range::_(start, 2)> cc;
+    tensor<int, ext(start, 2)> cc;
 
     int* pc = cc.data();
     for (int i = 0; i < size; ++i) {
@@ -397,7 +397,7 @@ TEST_CASE("c/c++-like array", "[array]")
   {
     constexpr int start = -4;
     constexpr int size = 6;
-    tensor<int, range::_(start, 2), range::_(start, 3)> cc;
+    tensor<int, ext(start, 2), ext(start, 3)> cc;
     REQUIRE(size == cc.size());
 
     int* pc = cc.data();
@@ -421,9 +421,7 @@ TEST_CASE("c/c++-like array", "[array]")
     constexpr int start = 7;
     constexpr int size = 120;
 
-    tensor<int, range::_(start, 2), range::_(start, 3), range::_(start, 4),
-      range::_(start, 5)>
-      cc;
+    tensor<int, ext(start, 2), ext(start, 3), ext(start, 4), ext(start, 5)> cc;
     REQUIRE(size == cc.size());
 
     int* pc = cc.data();

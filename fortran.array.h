@@ -298,7 +298,7 @@ public:
   /**
    * @brief constructs range object from the [front, front + size) range
    */
-  static constexpr range _(int ifront, unsigned int isize)
+  static constexpr range extend(int ifront, unsigned int isize)
   {
     return range(ifront, ifront + isize - 1);
   }
@@ -346,16 +346,11 @@ public:
 
 using index_t = range::index_t;
 
-inline range make_range(int ifront, unsigned isize)
-{
-  return range::_(ifront, isize);
-}
-
 using r = range;
 
-inline r make_r(int ifront, unsigned isize)
+inline constexpr range ext(int ifront, unsigned isize)
 {
-  return make_range(ifront, isize);
+  return range::extend(ifront, isize);
 }
 
 namespace detail_dim {
