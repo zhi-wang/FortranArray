@@ -21,6 +21,9 @@ struct range
   // coded range type
   using code_t = implementation_dependent_type_;
 
+  // signed index type
+  using index_t = signed_implementation_dependent_type_;
+
   // constructors
   constexpr range(code_t);
   constexpr range(int, int);
@@ -37,11 +40,11 @@ struct range
   // conversion
   constexpr operator code_t() const;
 };
+
+using index_t = range::index_t;
 } // namespace
 
     tensor, dimension, and fdms synopsis
-
-using index_t = signed_implementation_dependent_type_;
 
 namespace fa { namespace detail_dim
 {
@@ -59,7 +62,8 @@ class dimension : public detail_dim::fdms<'f', T, NN...> {};
 namespace fa { namespace detail_dim
 {
 template<char FC, class T, range::code_t... NN>
-struct fdms {
+struct fdms
+{
   // index
   template<class... SS> static index_t c_index(SS...);
   template<class... SS> static index_t fortran_index(SS...);
@@ -334,12 +338,25 @@ public:
   /**
    * @brief implicit conversion to code_t type
    */
-  constexpr operator code_t() const {
+  constexpr operator code_t() const
+  {
     return code();
   }
 };
 
 using index_t = range::index_t;
+
+inline range make_range(int ifront, unsigned isize)
+{
+  return range::_(ifront, isize);
+}
+
+using r = range;
+
+inline r make_r(int ifront, unsigned isize)
+{
+  return make_range(ifront, isize);
+}
 
 namespace detail_dim {
 /**
