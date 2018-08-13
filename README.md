@@ -21,7 +21,7 @@ ee.resize(0,0);  // ff.deallocate(); or ff.free();
 ```
 
 # Examples
-## dimension
+## DIMENSION
 In Fortran
 ```Fortran
 integer, dimension(3,5,7) :: a
@@ -61,7 +61,7 @@ ac.c(2,1,0) = 100;
 bc.c(2,1,0) = 100;
 ```
 
-## allocatable
+## ALLOCATABLE
 In Fortran
 ```Fortran
 integer d1,d2,d3

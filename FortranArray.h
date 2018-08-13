@@ -212,11 +212,6 @@ private:
         (icode << base_t::start_bits) >> base_t::start_bits);
     }
 
-    static constexpr stype to_code_(itype ifront, utype isize)
-    {
-      return (static_cast<stype>(ifront) << base_t::size_bits) + isize;
-    }
-
     static constexpr itype check_front_(int ifront)
     {
 #ifdef NDEBUG
@@ -237,6 +232,11 @@ private:
         ? isize
         : throw std::out_of_range("isize is out of range.");
 #endif
+    }
+
+    static constexpr stype to_code_(itype ifront, utype isize)
+    {
+      return (static_cast<stype>(ifront) << base_t::size_bits) + isize;
     }
 
     constexpr type_defs(stype icode)
@@ -346,9 +346,7 @@ public:
 
 using index_t = range::index_t;
 
-using r = range;
-
-inline constexpr range ext(int ifront, unsigned isize)
+inline constexpr range ext(int ifront, unsigned int isize)
 {
   return range::extend(ifront, isize);
 }
