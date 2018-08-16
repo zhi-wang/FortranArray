@@ -60,11 +60,11 @@ template<char FC, class T, range::code_t... NN>
 struct fdms;
 } // namespace
 
-template<class T, range::code_t... NN>
-class tensor : public detail_dim::fdms<'c', T, NN...> {};
+template<class T, r::code_t... NN>
+class tensor : public detail_dim::fdms<'c', T, r::_0(NN)...> {};
 
-template<class T, range::code_t... NN>
-class dimension : public detail_dim::fdms<'f', T, NN...> {};
+template<class T, r::code_t... NN>
+class dimension : public detail_dim::fdms<'c', T, r::_1(NN)...> {};
 }
 
 namespace fa { namespace detail_dim
@@ -155,7 +155,7 @@ struct allocatable
 */
 
 #if __cplusplus < 201103L
-#error "c++11 is required."
+#  error "c++11 (or above) is required."
 #endif
 
 namespace fa {
@@ -268,14 +268,6 @@ private:
       return to_code_(explicit_, start_, size_);
     }
 
-    template<itype N>
-    static constexpr stype n_view_(stype icode)
-    {
-      return code_if_explicit_(icode)
-        ? icode
-        : type_defs(1, N, code_to_size_(icode)).to_code_();
-    }
-
     constexpr type_defs(stype icode)
       : explicit_(code_if_explicit_(icode))
       , start_(code_to_front_(icode))
@@ -290,9 +282,17 @@ private:
 
     constexpr type_defs(int iexplicit, int ifront, int isize)
       : explicit_(iexplicit)
-      , start_(ifront)
-      , size_(isize)
+      , start_(check_front_(ifront))
+      , size_(check_size_(isize))
     {}
+
+    template<int N>
+    static constexpr stype n_view_(stype icode)
+    {
+      return code_if_explicit_(icode)
+        ? icode
+        : type_defs(1, N, code_to_size_(icode)).to_code_();
+    }
   };
 
 #ifdef EIGEN_DEFAULT_DENSE_INDEX_TYPE
@@ -362,7 +362,7 @@ public:
   /**
    * @brief returns the front index
    */
-  constexpr index_t front() const
+  constexpr type::itype front() const
   {
     return m_.start_;
   }
@@ -370,7 +370,7 @@ public:
   /**
    * @brief returns the size/length of the range
    */
-  constexpr index_t size() const
+  constexpr type::utype size() const
   {
     return m_.size_;
   }
