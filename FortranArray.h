@@ -14,7 +14,15 @@
 /*
     range synopsis
 
-namespace fa
+namespace fa { namespace detail_dim
+{
+struct range;
+typedef range r;
+}
+
+using detail_dim::r;
+
+namespace detail_dim
 {
 struct range
 {
@@ -30,10 +38,12 @@ struct range
 
   // static constructor
   static constexpr range _(int, unsigned int);
+  static constexpr code_t _0(code_t);
+  static constexpr code_t _1(code_t);
 
   // properties
+  constexpr unsigned int implicit() const;
   constexpr int front() const;
-  constexpr int back() const;
   constexpr unsigned int size() const;
   constexpr code_t code() const;
 
@@ -42,7 +52,7 @@ struct range
 };
 
 using index_t = range::index_t;
-} // namespace
+}} // namespace
 
     tensor, dimension, and fdms synopsis
 
@@ -147,6 +157,7 @@ struct allocatable
 */
 
 namespace fa {
+namespace detail_dim {
 /**
  * @brief coded range: [front, front + size)
  */
@@ -163,10 +174,14 @@ private:
     using utype = unsigned int;
     using idxtype = std::int32_t;
 
+    static constexpr int e_bits = 1;
+    static constexpr int f_bits = 3;
     static constexpr int start_bits = 4;
     static constexpr int size_bits = 28;
-    static constexpr int min_start = -8;
-    static constexpr int max_start = 7;
+    static_assert(e_bits + f_bits == start_bits, "");
+
+    static constexpr int min_start = -4; // FFFFFFF 1 100
+    static constexpr int max_start = 3;  // 0000000 0 011
     // max(idxtype) must >= max_size
     static constexpr unsigned int max_size = 0x0FFFFFFF;
   };
@@ -178,11 +193,14 @@ private:
     using utype = unsigned int;
     using idxtype = std::int64_t;
 
+    static constexpr int e_bits = 1;
+    static constexpr int f_bits = 31;
     static constexpr int start_bits = 32;
     static constexpr int size_bits = 32;
+    static_assert(e_bits + f_bits == start_bits, "");
 
-    static constexpr int min_start = 0x80000000;
-    static constexpr int max_start = 0x7FFFFFFF;
+    static constexpr int min_start = 0xC0000000; // 1 100 0000000
+    static constexpr int max_start = 0x3FFFFFFF; // 0 011 FFFFFFF
     // max(idxtype) must >= max_size
     static constexpr unsigned int max_size = 0x7FFFFFFF;
   };
@@ -195,22 +213,9 @@ private:
     using itype = typename base_t::itype;
     using utype = typename base_t::utype;
 
-    static_assert(sizeof(itype) * 8 >= base_t::start_bits, "");
-    static_assert(sizeof(utype) * 8 >= base_t::size_bits, "");
-
-    itype start_ : base_t::start_bits;
+    unsigned int explicit_ : base_t::e_bits;
+    itype start_ : base_t::f_bits;
     utype size_ : base_t::size_bits;
-
-    static constexpr itype code_to_front_(stype icode)
-    {
-      return static_cast<itype>(icode >> base_t::size_bits);
-    }
-
-    static constexpr utype code_to_size_(stype icode)
-    {
-      return static_cast<utype>(
-        (icode << base_t::start_bits) >> base_t::start_bits);
-    }
 
     static constexpr itype check_front_(int ifront)
     {
@@ -234,25 +239,58 @@ private:
 #endif
     }
 
-    static constexpr stype to_code_(itype ifront, utype isize)
+    static constexpr unsigned int code_if_explicit_(stype icode)
     {
-      return (static_cast<stype>(ifront) << base_t::size_bits) + isize;
+      return icode >> (base_t::f_bits + base_t::size_bits);
+    }
+
+    static constexpr itype code_to_front_(stype icode)
+    {
+      return icode << base_t::e_bits >> (base_t::e_bits + base_t::size_bits);
+    }
+
+    static constexpr utype code_to_size_(stype icode)
+    {
+      return icode << base_t::start_bits >> base_t::start_bits;
+    }
+
+    static constexpr stype to_code_(stype iexplicit, stype ifront, utype isize)
+    {
+      return (iexplicit << (base_t::f_bits + base_t::size_bits))
+        + (ifront << (base_t::e_bits + base_t::size_bits) >> base_t::e_bits)
+        + isize;
+    }
+
+    constexpr stype to_code_() const
+    {
+      return to_code_(explicit_, start_, size_);
+    }
+
+    template<itype N>
+    static constexpr stype n_view_(stype icode)
+    {
+      return code_if_explicit_(icode)
+        ? icode
+        : type_defs(1, N, code_to_size_(icode)).to_code_();
     }
 
     constexpr type_defs(stype icode)
-      : start_(code_to_front_(icode))
+      : explicit_(code_if_explicit_(icode))
+      , start_(code_to_front_(icode))
       , size_(code_to_size_(icode))
     {}
 
     constexpr type_defs(int ifront, int iback)
-      : start_(check_front_(ifront))
+      : explicit_(1)
+      , start_(check_front_(ifront))
       , size_(check_size_(iback - ifront + 1))
     {}
 
-    static constexpr type_defs _(int ifront, unsigned int isize)
-    {
-      return type_defs(ifront, ifront + isize - 1);
-    }
+    constexpr type_defs(int iexplicit, int ifront, int isize)
+      : explicit_(iexplicit)
+      , start_(ifront)
+      , size_(isize)
+    {}
   };
 
 #ifdef EIGEN_DEFAULT_DENSE_INDEX_TYPE
@@ -298,9 +336,25 @@ public:
   /**
    * @brief constructs range object from the [front, front + size) range
    */
-  static constexpr range extend(int ifront, unsigned int isize)
+  static constexpr range _(int ifront, unsigned int isize)
   {
     return range(ifront, ifront + isize - 1);
+  }
+
+  /**
+   * @brief returns this range code; or the range code for [0, icode - 1]
+   */
+  static constexpr code_t _0(code_t icode)
+  {
+    return type::n_view_<0>(icode);
+  }
+
+  /**
+   * @brief returns this range code; or the range code for [1, icode]
+   */
+  static constexpr code_t _1(code_t icode)
+  {
+    return type::n_view_<1>(icode);
   }
 
   /**
@@ -309,14 +363,6 @@ public:
   constexpr index_t front() const
   {
     return m_.start_;
-  }
-
-  /**
-   * @brief returns the back index
-   */
-  constexpr index_t back() const
-  {
-    return m_.start_ + m_.size_ - 1;
   }
 
   /**
@@ -332,7 +378,7 @@ public:
    */
   constexpr code_t code() const
   {
-    return type::to_code_(m_.start_, m_.size_);
+    return m_.to_code_();
   }
 
   /**
@@ -344,12 +390,14 @@ public:
   }
 };
 
-using index_t = range::index_t;
+using r = range;
+} // namespace detail_dim
+} // namespace fa
 
-inline constexpr range ext(int ifront, unsigned int isize)
-{
-  return range::extend(ifront, isize);
-}
+namespace fa {
+using detail_dim::r;
+using detail_dim::range;
+using index_t = range::index_t;
 
 namespace detail_dim {
 /**
@@ -781,13 +829,13 @@ public:
  * @brief c/c++ array analog
  */
 template<class T, range::code_t... NN>
-class tensor : public detail_dim::fdms<'c', T, NN...> {};
+class tensor : public detail_dim::fdms<'c', T, r::_0(NN)...> {};
 
 /**
  * @brief fortran array analog
  */
 template<class T, range::code_t... NN>
-class dimension : public detail_dim::fdms<'f', T, NN...> {};
+class dimension : public detail_dim::fdms<'f', T, r::_1(NN)...> {};
 
 namespace detail_alcb {
 /**

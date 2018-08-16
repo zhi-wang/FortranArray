@@ -4,54 +4,142 @@ using namespace fa;
 
 TEST_CASE("range tests", "[range]")
 {
-  SECTION("if a range starts from 0, its code should equal its size")
+  SECTION("explicitly set ranges")
   {
-    constexpr range rf0(0, 0);
-    constexpr range rf1(0, 1);
-    constexpr range rf2(0, 2);
-    constexpr range rf3(0, 42);
-    constexpr range rf4(0, 100);
-    REQUIRE(rf0.code() == rf0.size());
-    REQUIRE(rf1.code() == rf1.size());
-    REQUIRE(rf2.code() == rf2.size());
-    REQUIRE(rf3.code() == rf3.size());
-    REQUIRE(rf4.code() == rf4.size());
+    constexpr auto ra0 = r(0, 0);
+    constexpr auto ra1 = r(0, 1);
+    constexpr auto ra2 = r(3, 42);
+    constexpr auto ra3 = r(-2, 100);
+
+    REQUIRE(ra0.front() == 0);
+    REQUIRE(ra1.front() == 0);
+    REQUIRE(ra2.front() == 3);
+    REQUIRE(ra3.front() == -2);
+
+    REQUIRE(ra0.size() == 1);
+    REQUIRE(ra1.size() == 2);
+    REQUIRE(ra2.size() == 40);
+    REQUIRE(ra3.size() == 103);
+
+    constexpr auto rc0 = r(ra0.code());
+    constexpr auto rc1 = r(ra1.code());
+    constexpr auto rc2 = r(ra2.code());
+    constexpr auto rc3 = r(ra3.code());
+
+    REQUIRE(rc0.front() == 0);
+    REQUIRE(rc1.front() == 0);
+    REQUIRE(rc2.front() == 3);
+    REQUIRE(rc3.front() == -2);
+
+    REQUIRE(rc0.size() == 1);
+    REQUIRE(rc1.size() == 2);
+    REQUIRE(rc2.size() == 40);
+    REQUIRE(rc3.size() == 103);
+
+    constexpr auto rb0 = r(1, 0);
+    constexpr auto rb1 = r(-1, 1);
+    constexpr auto rb2 = r(1, 42);
+    constexpr auto rb3 = r(-3, 100);
+
+    constexpr auto rf0 = r(rb0.code());
+    constexpr auto rf1 = r(rb1.code());
+    constexpr auto rf2 = r(rb2.code());
+    constexpr auto rf3 = r(rb3.code());
+
+    REQUIRE(rf0.front() == 1);
+    REQUIRE(rf1.front() == -1);
+    REQUIRE(rf2.front() == 1);
+    REQUIRE(rf3.front() == -3);
+
+    REQUIRE(rf0.size() == 0);
+    REQUIRE(rf1.size() == 3);
+    REQUIRE(rf2.size() == 42);
+    REQUIRE(rf3.size() == 104);
   }
 
-  SECTION("initialize a range with one small natural number")
+  SECTION("C/C++ stype default ranges")
   {
-    constexpr range rf0(0);
-    constexpr range rf1(1);
-    constexpr range rf2(2);
-    constexpr range rf3(3);
-    constexpr range rf4(100);
-    REQUIRE(rf0.code() == rf0.size());
-    REQUIRE(rf1.code() == rf1.size());
-    REQUIRE(rf2.code() == rf2.size());
-    REQUIRE(rf3.code() == rf3.size());
-    REQUIRE(rf4.code() == rf4.size());
-    REQUIRE(rf0.front() == 0);
-    REQUIRE(rf1.front() == 0);
-    REQUIRE(rf2.front() == 0);
-    REQUIRE(rf3.front() == 0);
-    REQUIRE(rf4.front() == 0);
+    constexpr r rc0 = r::_0(0);
+    constexpr r rc1 = r::_0(1);
+    constexpr r rc2 = r::_0(42);
+    constexpr r rc3 = r::_0(100);
+
+    REQUIRE(rc0.front() == 0);
+    REQUIRE(rc1.front() == 0);
+    REQUIRE(rc2.front() == 0);
+    REQUIRE(rc3.front() == 0);
+
+    REQUIRE(rc0.size() == 0);
+    REQUIRE(rc1.size() == 1);
+    REQUIRE(rc2.size() == 42);
+    REQUIRE(rc3.size() == 100);
+
+    constexpr auto rr0 = r(rc0);
+    constexpr auto rr1 = r(rc1);
+    constexpr auto rr2 = r(rc2);
+    constexpr auto rr3 = r(rc3);
+
+    REQUIRE(rr0.front() == rc0.front());
+    REQUIRE(rr1.front() == rc1.front());
+    REQUIRE(rr2.front() == rc2.front());
+    REQUIRE(rr3.front() == rc3.front());
+
+    REQUIRE(rr0.size() == rc0.size());
+    REQUIRE(rr1.size() == rc1.size());
+    REQUIRE(rr2.size() == rc2.size());
+    REQUIRE(rr3.size() == rc3.size());
+  }
+
+  SECTION("Fortran style default ranges")
+  {
+    constexpr r rf0 = r::_1(0);
+    constexpr r rf1 = r::_1(1);
+    constexpr r rf2 = r::_1(42);
+    constexpr r rf3 = r::_1(100);
+
+    REQUIRE(rf0.front() == 1);
+    REQUIRE(rf1.front() == 1);
+    REQUIRE(rf2.front() == 1);
+    REQUIRE(rf3.front() == 1);
+
+    REQUIRE(rf0.size() == 0);
+    REQUIRE(rf1.size() == 1);
+    REQUIRE(rf2.size() == 42);
+    REQUIRE(rf3.size() == 100);
+
+    constexpr auto rr0 = r(rf0);
+    constexpr auto rr1 = r(rf1);
+    constexpr auto rr2 = r(rf2);
+    constexpr auto rr3 = r(rf3);
+
+    REQUIRE(rr0.front() == rf0.front());
+    REQUIRE(rr1.front() == rf1.front());
+    REQUIRE(rr2.front() == rf2.front());
+    REQUIRE(rr3.front() == rf3.front());
+
+    REQUIRE(rr0.size() == rf0.size());
+    REQUIRE(rr1.size() == rf1.size());
+    REQUIRE(rr2.size() == rf2.size());
+    REQUIRE(rr3.size() == rf3.size());
   }
 
   SECTION("[front, back] and size")
   {
     constexpr auto size = 42;
     constexpr auto st1 = 0;
-    constexpr auto rf1 = ext(st1, size);
+    constexpr auto rf1 = r::_(st1, size);
     constexpr auto st2 = 7;
-    constexpr auto rf2 = ext(st2, size);
+    constexpr auto rf2 = r::_(st2, size);
     constexpr auto st3 = -4;
-    constexpr auto rf3 = ext(st3, size);
+    constexpr auto rf3 = r::_(st3, size);
+
     REQUIRE(rf1.front() == st1);
     REQUIRE(rf2.front() == st2);
     REQUIRE(rf3.front() == st3);
-    REQUIRE(rf1.back() == -1 + st1 + size);
-    REQUIRE(rf2.back() == -1 + st2 + size);
-    REQUIRE(rf3.back() == -1 + st3 + size);
+
+    REQUIRE(rf1.size() == size);
+    REQUIRE(rf2.size() == size);
+    REQUIRE(rf3.size() == size);
   }
 }
 
@@ -60,9 +148,8 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("1 dimensional starts from 0")
   {
     constexpr auto start = 0;
-    constexpr auto rf1 = ext(start, 2);
+    constexpr auto rf1 = r::_(start, 2);
     REQUIRE(rf1.front() == start);
-    REQUIRE(rf1.back() == -1 + start + 2);
 
     dimension<int, rf1> ff;
     const int size = 2;
@@ -82,10 +169,10 @@ TEST_CASE("dimension with different initial index", "[dimension]")
     }
   }
 
-  SECTION("1 dimensional starts from 5")
+  SECTION("1 dimensional starts from 3")
   {
-    constexpr auto start = 5;
-    constexpr auto rf1 = ext(start, 2);
+    constexpr auto start = 3;
+    constexpr auto rf1 = r::_(start, 2);
 
     dimension<int, rf1> ff;
     const int size = 2;
@@ -105,10 +192,10 @@ TEST_CASE("dimension with different initial index", "[dimension]")
     }
   }
 
-  SECTION("1 dimensional starts from -4")
+  SECTION("1 dimensional starts from -3")
   {
-    constexpr auto start = -4;
-    constexpr auto rf1 = ext(start, 2);
+    constexpr auto start = -3;
+    constexpr auto rf1 = r::_(start, 2);
 
     dimension<int, rf1> ff;
     const int size = 2;
@@ -131,8 +218,8 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("2 dimensional starts from 0")
   {
     constexpr auto start = 0;
-    constexpr auto rf1 = ext(start, 2);
-    constexpr auto rf2 = ext(start, 3);
+    constexpr auto rf1 = r::_(start, 2);
+    constexpr auto rf2 = r::_(start, 3);
 
     dimension<int, rf2, rf1> ff;
     const int size = 6;
@@ -154,11 +241,11 @@ TEST_CASE("dimension with different initial index", "[dimension]")
     }
   }
 
-  SECTION("2 dimensional starts from 5")
+  SECTION("2 dimensional starts from 3")
   {
-    constexpr auto start = 5;
-    constexpr auto rf1 = ext(start, 2);
-    constexpr auto rf2 = ext(start, 3);
+    constexpr auto start = 3;
+    constexpr auto rf1 = r::_(start, 2);
+    constexpr auto rf2 = r::_(start, 3);
 
     dimension<int, rf2, rf1> ff;
     const int size = 6;
@@ -183,8 +270,8 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("2 dimensional starts from -4")
   {
     constexpr auto start = -4;
-    constexpr auto rf1 = ext(start, 2);
-    constexpr auto rf2 = ext(start, 3);
+    constexpr auto rf1 = r::_(start, 2);
+    constexpr auto rf2 = r::_(start, 3);
 
     dimension<int, rf2, rf1> ff;
     const int size = 6;
@@ -209,10 +296,10 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("4 dimensional starts from 0")
   {
     constexpr auto start = 0;
-    constexpr auto rf1 = ext(start, 2);
-    constexpr auto rf2 = ext(start, 3);
-    constexpr auto rf3 = ext(start, 4);
-    constexpr auto rf4 = ext(start, 5);
+    constexpr auto rf1 = r::_(start, 2);
+    constexpr auto rf2 = r::_(start, 3);
+    constexpr auto rf3 = r::_(start, 4);
+    constexpr auto rf4 = r::_(start, 5);
 
     dimension<int, rf4, rf3, rf2, rf1> ff;
     const int size = 120;
@@ -238,13 +325,13 @@ TEST_CASE("dimension with different initial index", "[dimension]")
     }
   }
 
-  SECTION("4 dimensional starts from 5")
+  SECTION("4 dimensional starts from 2")
   {
-    constexpr auto start = 5;
-    constexpr auto rf1 = ext(start, 2);
-    constexpr auto rf2 = ext(start, 3);
-    constexpr auto rf3 = ext(start, 4);
-    constexpr auto rf4 = ext(start, 5);
+    constexpr auto start = 2;
+    constexpr auto rf1 = r::_(start, 2);
+    constexpr auto rf2 = r::_(start, 3);
+    constexpr auto rf3 = r::_(start, 4);
+    constexpr auto rf4 = r::_(start, 5);
 
     dimension<int, rf4, rf3, rf2, rf1> ff;
     const int size = 120;
@@ -273,10 +360,10 @@ TEST_CASE("dimension with different initial index", "[dimension]")
   SECTION("4 dimensional starts from -4")
   {
     constexpr auto start = -4;
-    constexpr auto rf1 = ext(start, 2);
-    constexpr auto rf2 = ext(start, 3);
-    constexpr auto rf3 = ext(start, 4);
-    constexpr auto rf4 = ext(start, 5);
+    constexpr auto rf1 = r::_(start, 2);
+    constexpr auto rf2 = r::_(start, 3);
+    constexpr auto rf3 = r::_(start, 4);
+    constexpr auto rf4 = r::_(start, 5);
 
     dimension<int, rf4, rf3, rf2, rf1> ff;
     const int size = 120;
@@ -373,11 +460,11 @@ TEST_CASE("c/c++-like array", "[array]")
     }
   }
 
-  SECTION("1 dimensional starting from 5")
+  SECTION("1 dimensional starting from 3")
   {
-    constexpr int start = 5;
+    constexpr int start = 3;
     constexpr int size = 2;
-    tensor<int, ext(start, 2)> cc;
+    tensor<int, r::_(start, 2)> cc;
 
     int* pc = cc.data();
     for (int i = 0; i < size; ++i) {
@@ -397,7 +484,7 @@ TEST_CASE("c/c++-like array", "[array]")
   {
     constexpr int start = -4;
     constexpr int size = 6;
-    tensor<int, ext(start, 2), ext(start, 3)> cc;
+    tensor<int, r::_(start, 2), r(start, -2)> cc;
     REQUIRE(size == cc.size());
 
     int* pc = cc.data();
@@ -416,12 +503,12 @@ TEST_CASE("c/c++-like array", "[array]")
     }
   }
 
-  SECTION("4 dimensional starting from 7")
+  SECTION("4 dimensional starting from 2")
   {
-    constexpr int start = 7;
+    constexpr int start = 2;
     constexpr int size = 120;
 
-    tensor<int, ext(start, 2), ext(start, 3), ext(start, 4), ext(start, 5)> cc;
+    tensor<int, r::_(start, 2), r::_(start, 3), r(2, 5), r(2, 6)> cc;
     REQUIRE(size == cc.size());
 
     int* pc = cc.data();
