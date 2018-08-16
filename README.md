@@ -40,10 +40,9 @@ vs. using this wrapper
 ```C
 using namespace fa;
 
-dimension<int,range(1,3),range(1,5),range(1,7)> af;
-dimension<int,3,5,7> bf;
-// or dimension<int,range(0,2),range(0,4),range(0,6)> bf;
-// or dimension<int,range::_(0,3),range::_(0,5),range::_(0,7)> bf;
+dimension<int,3,5,7> af;
+dimension<int,r(0,2),r(0,4),r(0,6)> bf;
+// or dimension<int,r::_(0,3),r::_(0,5),r::_(0,7)> bf;
 af(1,2,3) = 100;
 bf(0,1,2) = 100;
 af[2][1][0] = 100;
@@ -51,7 +50,8 @@ bf[2][1][0] = 100;
 af.c(2,1,0) = 100;
 bf.c(2,1,0) = 100;
 
-tensor<int,range(1,7),range(1,5),range(1,3)> ac;
+tensor<int,r(1,7),r(1,5),r(1,3)> ac;
+// or tensor<int,r::_(1,7),r::_(1,5),r::_(1,3)> ac;
 tensor<int,7,5,3> bc;
 ac(1,2,3) = 100;
 bc(0,1,2) = 100;
