@@ -128,7 +128,7 @@ TEST_CASE("range tests", "[range]")
     constexpr auto size = 42;
     constexpr auto st1 = 0;
     constexpr auto rf1 = r::_(st1, size);
-    constexpr auto st2 = 7;
+    constexpr auto st2 = 2;
     constexpr auto rf2 = r::_(st2, size);
     constexpr auto st3 = -4;
     constexpr auto rf3 = r::_(st3, size);

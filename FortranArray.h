@@ -17,10 +17,9 @@
 namespace fa { namespace detail_dim
 {
 struct range;
-typedef range r;
 }
 
-using detail_dim::r;
+typedef detail_dim::range r;
 
 namespace detail_dim
 {
@@ -36,15 +35,14 @@ struct range
   constexpr range(code_t);
   constexpr range(int, int);
 
-  // static constructor
+  // static constructors
   static constexpr range _(int, unsigned int);
   static constexpr code_t _0(code_t);
   static constexpr code_t _1(code_t);
 
   // properties
-  constexpr unsigned int implicit() const;
-  constexpr int front() const;
-  constexpr unsigned int size() const;
+  constexpr index_t front() const;
+  constexpr index_t size() const;
   constexpr code_t code() const;
 
   // conversion
@@ -155,6 +153,10 @@ struct allocatable
 } // namespace
 
 */
+
+#if __cplusplus < 201103L
+#error "c++11 is required."
+#endif
 
 namespace fa {
 namespace detail_dim {
@@ -389,15 +391,12 @@ public:
     return code();
   }
 };
-
-using r = range;
 } // namespace detail_dim
 } // namespace fa
 
 namespace fa {
-using detail_dim::r;
-using detail_dim::range;
-using index_t = range::index_t;
+using r = detail_dim::range;
+using index_t = r::index_t;
 
 namespace detail_dim {
 /**
@@ -828,13 +827,13 @@ public:
 /**
  * @brief c/c++ array analog
  */
-template<class T, range::code_t... NN>
+template<class T, r::code_t... NN>
 class tensor : public detail_dim::fdms<'c', T, r::_0(NN)...> {};
 
 /**
  * @brief fortran array analog
  */
-template<class T, range::code_t... NN>
+template<class T, r::code_t... NN>
 class dimension : public detail_dim::fdms<'f', T, r::_1(NN)...> {};
 
 namespace detail_alcb {
@@ -1107,8 +1106,9 @@ struct ad_base<T, B, BB...> {
     static index_t rev_prod(const index_t* pback, index_t n)
     {
       index_t prod = 1;
-      // must use signed type i here
-      for (int i = 0; i < n; ++i) {
+      // must use signed type for i here
+      static_assert(std::is_signed<index_t>::value, "");
+      for (index_t i = 0; i < n; ++i) {
         prod *= pback[-i];
       }
       return prod;
