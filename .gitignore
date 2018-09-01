@@ -1,4 +1,6 @@
+*.log
 *.o
 *.out
 *-orig
 *-save
+*.txt

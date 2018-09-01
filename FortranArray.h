@@ -1198,6 +1198,8 @@ struct aimpl<T, B, BB...> : public ad<T, B, BB...> {
 
 /**
  * @brief fortran allocatable analog
+ * @tparam T       the type of the elements stored in the allocatable
+ * @tparam BEGINS  the x-based array index for each fortran dimension
  */
 template<class T, int... BEGINS>
 class allocatable : private detail_alcb::aimpl<T, BEGINS...> {
@@ -1233,9 +1235,8 @@ public:
   }
 
   /**
-   * @brief cast to another type
+   * @brief casts to another const type
    */
-  ///@{
   template<class V>
   const V& as() const
   {
@@ -1243,28 +1244,32 @@ public:
     return *reinterpret_cast<const V*>(this);
   }
 
+  /**
+   * @brief casts to another type
+   */
   template<class V>
   V& as()
   {
     static_assert(sizeof(*this) == sizeof(V), "");
     return *reinterpret_cast<V*>(this);
   }
-  ///@}
 
   /**
-   * @brief fill all the elements with the same value
+   * @brief fills all the elements with the same value
    */
-  ///@{
   void fill(T t)
   {
     std::uninitialized_fill_n(data(), size(), t);
   }
 
+  /**
+   * @brief fills all the elements with 0, assuming the objects held
+   *        takes 0 as constructor parameter
+   */
   void zero()
   {
     fill((T)0);
   }
-  ///@}
 
   // c++
 
@@ -1277,19 +1282,20 @@ public:
   }
 
   /**
-   * @brief returns the (const) pointer to the first element
+   * @brief returns the const pointer to the first element
    */
-  ///@{
   const T* data() const
   {
     return impl_t::data_;
   }
 
+  /**
+   * @brief returns the pointer to the first element
+   */
   T* data()
   {
     return impl_t::data_;
   }
-  ///@}
 
   /**
    * @brief dynamic deallocation;
@@ -1321,40 +1327,50 @@ public:
   }
 
   /**
-   * @brief returns the (const) reference to the element following the
+   * @brief returns the const reference to the element following the
    *        c/c++ style index
    */
-  ///@{
   template<class... SS>
   const T& c(SS... ss) const
   {
     return data()[c_index(ss...)];
   }
 
+  /**
+   * @brief returns the reference to the element following the c/c++
+   *        style index
+   */
   template<class... SS>
   T& c(SS... ss)
   {
     return data()[c_index(ss...)];
   }
-  ///@}
 
   /**
-   * @brief does the same job as the c/c++ operator[] of arrays
+   * @brief the return type of const operator[]
    */
-  ///@{
   using const_base_t = typename impl_t::const_base_t;
+
+  /**
+   * @brief the return type of operator[]
+   */
   using base_t = typename impl_t::base_t;
 
+  /**
+   * @brief c/c++ const operator[] of arrays
+   */
   const_base_t operator[](index_t index) const
   {
     return impl_t::operator[](index);
   }
 
+  /**
+   * @brief c/c++ operator[] of arrays
+   */
   base_t operator[](index_t index)
   {
     return impl_t::operator[](index);
   }
-  ///@}
 
   // fortran style
 
@@ -1398,22 +1414,24 @@ public:
   }
 
   /**
-   * @brief returns the (const) reference to the element following the
+   * @brief returns the const reference to the element following the
    *        fortran style index
    */
-  ///@{
   template<class... SS>
   const T& operator()(SS... ss) const
   {
     return data()[fortran_index(ss...)];
   }
 
+  /**
+   * @brief returns the reference to the element following the fortran
+   *        style index
+   */
   template<class... SS>
   T& operator()(SS... ss)
   {
     return data()[fortran_index(ss...)];
   }
-  ///@}
 };
 } // namespace fa
 

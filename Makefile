@@ -1,6 +1,5 @@
 CXXFLAG = -std=c++11
-# OPTFLAG = -O3 -D NDEBUG
-OPTFLAG = -O3
+OPTFLAG = -O3 -DNDEBUG
 
 default: a64 a32
 
@@ -32,3 +31,6 @@ a64: main.64.o ut.allocatable.64.o ut.dimension.64.o
 test: a32 a64
 	./a32.out
 	./a64.out
+
+bm: FortranArray.h bm.cc
+	${CXX} ${CXXFLAG} ${OPTFLAG} -m64 bm.cc -o bm64.out -lbenchmark
