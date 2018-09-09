@@ -40,12 +40,12 @@ int main(int argc, char** argv)
     vs[i] = argv[i];
   }
 
-  string filename = "";
+  string filename = "bmargs.txt";
   vector<string> vs2;
   vs2.emplace_back(vs[0]);
 
   string pref1 = "--";
-  string pref2 = "file=";
+  string pref2 = "-file=";
   for (auto i = 1; i < argc; ++i) {
     if (start_with(vs[i], pref1)) {
       vs2.emplace_back(vs[i]);
@@ -222,9 +222,9 @@ static void Alloc_1_F_bm7(bm::State& state)
 
   for (auto _ : state) {
     auto count = 0;
-    for (auto i3 = 1; i3 < d3 + 1; ++i3)
-      for (auto i2 = 1; i2 < d2 + 1; ++i2)
-        for (auto i1 = 1; i1 < d1 + 1; ++i1) {
+    for (auto i3 = 1; i3 <= d3; ++i3)
+      for (auto i2 = 1; i2 <= d2; ++i2)
+        for (auto i1 = 1; i1 <= d1; ++i1) {
           globv[count] = here(i1, i2, i3);
           assert(here.fortran_index(i1, i2, i3) == count);
           ++count;
@@ -318,28 +318,27 @@ void Tensor_C_d4(bm::State& state)
   }
 }
 
-template<int cd3>
-void Dim0_d5(bm::State& state)
-{
-  constexpr auto d1 = cd1;
-  constexpr auto d2 = cd2;
-  constexpr auto d3 = cd3;
-
-  using namespace fa;
-  using here_t = dimension<OBJECT, r(0, d1 - 1), r(0, d2 - 1), r(0, d3 - 1)>;
-  here_t& here = *reinterpret_cast<here_t*>(&data);
-
-  for (auto _ : state) {
-    auto count = 0;
-    for (auto i3 = 0; i3 < d3; ++i3)
-      for (auto i2 = 0; i2 < d2; ++i2)
-        for (auto i1 = 0; i1 < d1; ++i1) {
-          here(i1, i2, i3) = count;
-          assert(here.fortran_index(i1, i2, i3) == count);
-          ++count;
-        }
+#define Dim0_d5_macro(cd3)                                           \
+  void Dim0_d5_##cd3(bm::State& state)                               \
+  {                                                                  \
+    constexpr auto d1 = cd1;                                         \
+    constexpr auto d2 = cd2;                                         \
+    constexpr auto d3 = cd3;                                         \
+    using namespace fa;                                              \
+    using here_t                                                     \
+      = dimension<OBJECT, r(0, d1 - 1), r(0, d2 - 1), r(0, d3 - 1)>; \
+    here_t& here = *reinterpret_cast<here_t*>(&data);                \
+    for (auto _ : state) {                                           \
+      auto count = 0;                                                \
+      for (auto i3 = 0; i3 < d3; ++i3)                               \
+        for (auto i2 = 0; i2 < d2; ++i2)                             \
+          for (auto i1 = 0; i1 < d1; ++i1) {                         \
+            here(i1, i2, i3) = count;                                \
+            assert(here.fortran_index(i1, i2, i3) == count);         \
+            ++count;                                                 \
+          }                                                          \
+    }                                                                \
   }
-}
 
 template<int cd3>
 void Dim1_d6(bm::State& state)
@@ -354,9 +353,9 @@ void Dim1_d6(bm::State& state)
 
   for (auto _ : state) {
     auto count = 0;
-    for (auto i3 = 1; i3 < d3 + 1; ++i3)
-      for (auto i2 = 1; i2 < d2 + 1; ++i2)
-        for (auto i1 = 1; i1 < d1 + 1; ++i1) {
+    for (auto i3 = 1; i3 <= d3; ++i3)
+      for (auto i2 = 1; i2 <= d2; ++i2)
+        for (auto i1 = 1; i1 <= d1; ++i1) {
           here(i1, i2, i3) = count;
           assert(here.fortran_index(i1, i2, i3) == count);
           ++count;
@@ -382,13 +381,34 @@ BENCHMARK(Alloc_1_F_bm7)->RangeMultiplier(2)->Range(8, cd3max);
   BENCHMARK_TEMPLATE(TPL, 512);  \
   BENCHMARK_TEMPLATE(TPL, 1024); \
   BENCHMARK_TEMPLATE(TPL, 2048); \
-  BENCHMARK_TEMPLATE(TPL, 8096);
+  BENCHMARK_TEMPLATE(TPL, 4096); \
+  BENCHMARK_TEMPLATE(TPL, 8192);
+
+#define xpand2_1(TPL, CD3) TPL##_macro(CD3)
+#define xpand2_2(TPL, CD3) BENCHMARK(TPL##_##CD3)
+#define xpand2_3(TPL, CD3) xpand2_1(TPL, CD3) xpand2_2(TPL, CD3)
+#define xpand2(TPL)    \
+  xpand2_3(TPL, 8);    \
+  xpand2_3(TPL, 16);   \
+  xpand2_3(TPL, 32);   \
+  xpand2_3(TPL, 64);   \
+  xpand2_3(TPL, 128);  \
+  xpand2_3(TPL, 256);  \
+  xpand2_3(TPL, 512);  \
+  xpand2_3(TPL, 1024); \
+  xpand2_3(TPL, 2048); \
+  xpand2_3(TPL, 4096); \
+  xpand2_3(TPL, 8192);
 
 xpand(CXX_Array_d1);
 xpand(Pure_C_Array_d2);
 xpand(Tensor_Op_d3);
 xpand(Tensor_C_d4);
-xpand(Dim0_d5);
+xpand2(Dim0_d5);
 xpand(Dim1_d6);
 
 #undef xpand
+#undef xpand2
+#undef xpand2_1
+#undef xpand2_2
+#undef xpand2_3
