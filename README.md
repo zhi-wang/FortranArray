@@ -63,14 +63,14 @@ bc.c(2,1,0) = 100;
 
 ## ALLOCATABLE
 ### API
-Declare the allocable type as follows:
+Declare the allocatable type as follows:
 
 | FortranArray | Fortran |  C++ | Explanation |
 |--------------|---------|------|-------------|
 | `allocatable<int,1,1,...> foo;` | `integer, allocatable :: foo(:,:,...)` | `vector<...vector<int>> foo;` | **declare an n-dimensional dynamic array; when using Fortran syntax, assuming index starts from 1** |
 | `allocatable<int,0,0,...> bar;` | `integer, allocatable :: bar(:,:,...)` | `vector<...vector<int>> bar;` | **declare an n-dimensional dynamic array; when using Fortran syntax, assuming index starts from 0** |
 | `foo.allocated();` | `ALLOCATED(foo)` | `foo.size();` | **check availability** |
-| `foo.size();` | `SIZE(foo)` | *ditto* | *ditto* |
+| `foo.size();` | `SIZE(foo)` | *ditto* | *total number of elements* |
 | `foo.deallocate();` | `DEALLOCATE(foo)` | `foo.clear();` | **release the dynamic allocation** |
 | `foo.clear();` | *ditto* | *ditto* | *ditto* |
 | `foo.allocate(d1,d2,...);` | `ALLOCATE(foo(d1,d2,...))` | `foo.reserve(...,d2,d1);` | **dynamic allocation** |
@@ -81,8 +81,8 @@ Declare the allocable type as follows:
 | `foo.data();` | `foo` | `foo.data();` | **pointer to the first element** |
 | `foo.fill(42);` | `foo = 42` | `std::fill(foo.data(), foo.data()+foo.size(), 42);` | **assign value 42 to every element** |
 | `foo.zero();` | `foo = 0` | `std::fill(foo.data(), foo.data()+foo.size(), 0);` | **zero out all the elements** |
-| `foo.c_index(...,i2,i1);` | *unavailable* | *unavailable* | **0-based number index for the element "foo[...][i2][i1]"** |
-| `foo.fortran_index(j1,j2,...)` | *unavailable* | *unavailable* | **0-based number index for the element "foo(j1,j2,...)"; the effect of different "beginning index" is taken into account** |
+| `foo.c_index(...,i2,i1);` | *unavailable* | *unavailable* | **0-based index of the element "foo[...][i2][i1]"** |
+| `foo.fortran_index(j1,j2,...)` | *unavailable* | *unavailable* | **0-based index of the element "foo(j1,j2,...)"; the effect of different "beginning indexes" is taken into account** |
 
 ### Example
 In Fortran
