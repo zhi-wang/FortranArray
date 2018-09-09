@@ -318,6 +318,27 @@ void Tensor_C_d4(bm::State& state)
   }
 }
 
+/*
+ This benchmark is intentionally written in macro.
+ Due to the bug [1] in g++ 7.1 and above (as of this comment is added)
+ the template form for this benchmark failed to compile.
+
+ [1] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87145
+ [2] Another test case for this bug
+
+ $ g++ -std=c++11 -c test.cpp
+
+ struct x { constexpr x(int) {}
+            constexpr operator int() const { return 0; }
+ };
+ template<int N> struct w {};
+ template<int N> void f1() { using t = w<static_cast<int>(x(N))>;
+                             // problematic here
+                             using u = w<x(N)>;
+ }
+ void f2() { f1<42>(); }
+ */
+
 #define Dim0_d5_macro(cd3)                                           \
   void Dim0_d5_##cd3(bm::State& state)                               \
   {                                                                  \
@@ -406,6 +427,7 @@ xpand(Tensor_Op_d3);
 xpand(Tensor_C_d4);
 xpand2(Dim0_d5);
 xpand(Dim1_d6);
+#undef Dim0_d5_macro
 
 #undef xpand
 #undef xpand2

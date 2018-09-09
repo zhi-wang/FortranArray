@@ -65,12 +65,12 @@ bc.c(2,1,0) = 100;
 ### API
 Declare the allocatable type as follows:
 
-| FortranArray | Fortran |  C++ | Explanation |
+| This Wrapper | Fortran |  C++ | Explanation |
 |--------------|---------|------|-------------|
 | `allocatable<int,1,1,...> foo;` | `integer, allocatable :: foo(:,:,...)` | `vector<...vector<int>> foo;` | declare an n-dimensional dynamic array; when using Fortran syntax, assuming index starts from **1** |
 | `allocatable<int,0,0,...> bar;` | `integer, allocatable :: bar(:,:,...)` | `vector<...vector<int>> bar;` | declare an n-dimensional dynamic array; when using Fortran syntax, assuming index starts from **0** |
 | `foo.allocated();` | `ALLOCATED(foo)` | `foo.size();` | check availability |
-| `foo.size();` | `SIZE(foo)` | *ditto* | **total number of elements** |
+| `foo.size();` | `SIZE(foo)` | *ditto* | total number of elements |
 | `foo.deallocate();` | `DEALLOCATE(foo)` | `foo.clear();` | release the dynamic allocation |
 | `foo.clear();` | *ditto* | *ditto* | *ditto* |
 | `foo.allocate(d1,d2,...);` | `ALLOCATE(foo(d1,d2,...))` | `foo.reserve(...,d2,d1);` | dynamic allocation |
