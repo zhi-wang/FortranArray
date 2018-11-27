@@ -326,17 +326,18 @@ void Tensor_C_d4(bm::State& state)
  [1] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87145
  [2] Another test case for this bug
 
- $ g++ -std=c++11 -c test.cpp
+ $ cat test.cpp
 
  struct x { constexpr x(int) {}
             constexpr operator int() const { return 0; }
  };
  template<int N> struct w {};
  template<int N> void f1() { using t = w<static_cast<int>(x(N))>;
-                             // problematic here
-                             using u = w<x(N)>;
+                             using u = w<x(N)>; // problematic here
  }
  void f2() { f1<42>(); }
+
+ $ g++ -std=c++11 -c test.cpp
  */
 
 #define Dim0_d5_macro(cd3)                                           \
@@ -392,45 +393,34 @@ BENCHMARK(Alloc_1_C_bm5)->RangeMultiplier(2)->Range(8, cd3max);
 BENCHMARK(Alloc_0_F_bm6)->RangeMultiplier(2)->Range(8, cd3max);
 BENCHMARK(Alloc_1_F_bm7)->RangeMultiplier(2)->Range(8, cd3max);
 
-#define xpand(TPL)               \
-  BENCHMARK_TEMPLATE(TPL, 8);    \
-  BENCHMARK_TEMPLATE(TPL, 16);   \
-  BENCHMARK_TEMPLATE(TPL, 32);   \
-  BENCHMARK_TEMPLATE(TPL, 64);   \
-  BENCHMARK_TEMPLATE(TPL, 128);  \
-  BENCHMARK_TEMPLATE(TPL, 256);  \
-  BENCHMARK_TEMPLATE(TPL, 512);  \
-  BENCHMARK_TEMPLATE(TPL, 1024); \
-  BENCHMARK_TEMPLATE(TPL, 2048); \
-  BENCHMARK_TEMPLATE(TPL, 4096); \
-  BENCHMARK_TEMPLATE(TPL, 8192);
+#define xpand(M, TPL) \
+  M(TPL, 8);          \
+  M(TPL, 16);         \
+  M(TPL, 32);         \
+  M(TPL, 64);         \
+  M(TPL, 128);        \
+  M(TPL, 256);        \
+  M(TPL, 512);        \
+  M(TPL, 1024);       \
+  M(TPL, 2048);       \
+  M(TPL, 4096);       \
+  M(TPL, 8192);
 
+#define xpand1 BENCHMARK_TEMPLATE
 #define xpand2_1(TPL, CD3) TPL##_macro(CD3)
 #define xpand2_2(TPL, CD3) BENCHMARK(TPL##_##CD3)
-#define xpand2_3(TPL, CD3) xpand2_1(TPL, CD3) xpand2_2(TPL, CD3)
-#define xpand2(TPL)    \
-  xpand2_3(TPL, 8);    \
-  xpand2_3(TPL, 16);   \
-  xpand2_3(TPL, 32);   \
-  xpand2_3(TPL, 64);   \
-  xpand2_3(TPL, 128);  \
-  xpand2_3(TPL, 256);  \
-  xpand2_3(TPL, 512);  \
-  xpand2_3(TPL, 1024); \
-  xpand2_3(TPL, 2048); \
-  xpand2_3(TPL, 4096); \
-  xpand2_3(TPL, 8192);
+#define xpand2(TPL, CD3) xpand2_1(TPL, CD3) xpand2_2(TPL, CD3)
 
-xpand(CXX_Array_d1);
-xpand(Pure_C_Array_d2);
-xpand(Tensor_Op_d3);
-xpand(Tensor_C_d4);
-xpand2(Dim0_d5);
-xpand(Dim1_d6);
+xpand(xpand1, CXX_Array_d1);
+xpand(xpand1, Pure_C_Array_d2);
+xpand(xpand1, Tensor_Op_d3);
+xpand(xpand1, Tensor_C_d4);
+xpand(xpand2, Dim0_d5);
+xpand(xpand1, Dim1_d6);
 #undef Dim0_d5_macro
 
 #undef xpand
+#undef xpand1
 #undef xpand2
 #undef xpand2_1
 #undef xpand2_2
-#undef xpand2_3
