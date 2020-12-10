@@ -1,4 +1,5 @@
-# Introduction
+[![DOI](https://zenodo.org/badge/144240621.svg)](https://zenodo.org/badge/latestdoi/144240621)
+
 This is a C++ wrapper that mimics the syntax of static and dynamic multidimensional Fortran array.
 
 I felt it would cost me less time to write a correct wrapper than

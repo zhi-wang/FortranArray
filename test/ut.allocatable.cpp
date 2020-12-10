@@ -1,5 +1,5 @@
-#include "FortranArray.h"
-#include <catch2/catch.hpp>
+#include "FortranArray"
+#include "catch.hpp"
 using namespace fa;
 
 TEST_CASE("allocatable tests dimension equals 1", "[allocatable]")

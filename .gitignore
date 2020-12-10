@@ -3,4 +3,7 @@
 *.out
 *-orig
 *-save
+*.tmp
 *.txt
+
+*/catch.hpp
