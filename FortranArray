@@ -16,23 +16,20 @@
 #endif
 
 namespace fa {
-
-/**
- * @brief coded range: [front, front + size)
- */
 class range
 {
 private:
    // "class T" is necessary to put partial specialization in the class scope
    template <class T, int TOTALBITS>
-   struct range_traits_impl_;
+   struct RangeTraitsImpl;
+
 
    template <class T>
-   struct range_traits_impl_<T, 32>
+   struct RangeTraitsImpl<T, 32>
    {
       using stype = std::uint32_t;
-      using itype = int;
-      using utype = unsigned;
+      using itype = std::int32_t;
+      using utype = std::uint32_t;
       using idxtype = std::int32_t;
 
       static constexpr int e_bits = 1;
@@ -48,12 +45,13 @@ private:
       static constexpr unsigned max_size = 0x0FFFFFFF;
    };
 
+
    template <class T>
-   struct range_traits_impl_<T, 64>
+   struct RangeTraitsImpl<T, 64>
    {
       using stype = std::uint64_t;
-      using itype = int;
-      using utype = unsigned;
+      using itype = std::int32_t;
+      using utype = std::uint32_t;
       using idxtype = std::int64_t;
 
       static constexpr int e_bits = 1;
@@ -69,16 +67,16 @@ private:
       static constexpr unsigned max_size = 0x7FFFFFFF;
    };
 
-   template <int TOTALBITS>
-   struct range_traits_ : public range_traits_impl_<int, TOTALBITS>
-   {
-      using base_t = range_traits_impl_<int, TOTALBITS>;
 
+   template <int TOTALBITS>
+   struct RangeTraits : public RangeTraitsImpl<void, TOTALBITS>
+   {
+      using base_t = RangeTraitsImpl<int, TOTALBITS>;
       using stype = typename base_t::stype; // size type
       using itype = typename base_t::itype; // signed integer type
       using utype = typename base_t::utype; // unsigned integer type
 
-      unsigned explicit_ : base_t::e_bits;
+      std::uint32_t explicit_ : base_t::e_bits;
       itype start_ : base_t::f_bits;
       utype size_ : base_t::size_bits;
 
@@ -132,19 +130,19 @@ private:
          return to_code_(explicit_, start_, size_);
       }
 
-      constexpr range_traits_(stype icode)
+      constexpr RangeTraits(stype icode)
          : explicit_(code_if_explicit_(icode))
          , start_(code_to_front_(icode))
          , size_(code_to_size_(icode))
       {}
 
-      constexpr range_traits_(int ifront, int iback)
+      constexpr RangeTraits(int ifront, int iback)
          : explicit_(1)
          , start_(check_front_(ifront))
          , size_(check_size_(iback - ifront + 1))
       {}
 
-      constexpr range_traits_(int iexplicit, int ifront, int isize)
+      constexpr RangeTraits(int iexplicit, int ifront, int isize)
          : explicit_(iexplicit)
          , start_(check_front_(ifront))
          , size_(check_size_(isize))
@@ -155,22 +153,22 @@ private:
       {
          return code_if_explicit_(icode)
             ? icode
-            : range_traits_(1, N, code_to_size_(icode)).to_code_();
+            : RangeTraits(1, N, code_to_size_(icode)).to_code_();
       }
    };
 
 #ifdef EIGEN_DEFAULT_DENSE_INDEX_TYPE
    static constexpr size_t nbit_ = 8 * sizeof(EIGEN_DEFAULT_DENSE_INDEX_TYPE);
-   static_assert(sizeof(range_traits_<nbit_>) ==
+   static_assert(sizeof(RangeTraits<nbit_>) ==
                     sizeof(EIGEN_DEFAULT_DENSE_INDEX_TYPE),
                  "");
 #else
    // default platform information
    static constexpr size_t nbit_ = 8 * sizeof(size_t);
-   static_assert(sizeof(range_traits_<nbit_>) == sizeof(size_t), "");
+   static_assert(sizeof(RangeTraits<nbit_>) == sizeof(size_t), "");
 #endif
 
-   using type = range_traits_<nbit_>;
+   using type = RangeTraits<nbit_>;
    static_assert(std::is_signed<type::idxtype>::value, "");
 
    type m_;
