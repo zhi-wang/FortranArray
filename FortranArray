@@ -1,7 +1,8 @@
 // -*- C++ -*-
 
-#ifndef FortranArray_h
-#define FortranArray_h
+
+#pragma once
+
 
 #include <array>
 #include <cassert>
@@ -11,9 +12,14 @@
 #include <stdexcept>
 #include <type_traits>
 
+
 #if __cplusplus < 201103L
 #   error "c++11 (or above) is required."
 #endif
+
+
+//====================================================================//
+
 
 namespace fa {
 class range
@@ -157,120 +163,87 @@ private:
       }
    };
 
-#ifdef EIGEN_DEFAULT_DENSE_INDEX_TYPE
-   static constexpr size_t nbit_ = 8 * sizeof(EIGEN_DEFAULT_DENSE_INDEX_TYPE);
-   static_assert(sizeof(RangeTraits<nbit_>) ==
-                    sizeof(EIGEN_DEFAULT_DENSE_INDEX_TYPE),
-                 "");
-#else
+
    // default platform information
    static constexpr size_t nbit_ = 8 * sizeof(size_t);
    static_assert(sizeof(RangeTraits<nbit_>) == sizeof(size_t), "");
-#endif
-
    using type = RangeTraits<nbit_>;
    static_assert(std::is_signed<type::idxtype>::value, "");
-
    type m_;
 
+
 public:
-   /**
-    * @brief type of the coded range
-    */
-   using code_t = type::stype;
+   using code_t = type::stype;    // type of the coded range
+   using index_t = type::idxtype; // type of the index
 
-   /**
-    * @brief type of the index
-    */
-   using index_t = type::idxtype;
-
-   /**
-    * @brief constructs range object from the coded range
-    */
+   // constructs range object from the coded range
    constexpr range(code_t icode)
       : m_(icode)
    {}
 
-   /**
-    * @brief constructs range object from the inclusive [front, back] range
-    */
+   // constructs range object from the inclusive [front, back] range
    constexpr range(int ifront, int iback)
       : m_(ifront, iback)
    {}
 
-   /**
-    * @brief constructs range object from the [front, front + size) range
-    */
+   // constructs range object from the [front, front + size) range
    static constexpr range _(int ifront, unsigned isize)
    {
       return range(ifront, ifront + isize - 1);
    }
 
-   /**
-    * @brief returns this range code; or the range code for [0, icode - 1]
-    */
+   // returns this range code; or the range code for [0, icode - 1]
    static constexpr code_t _0(code_t icode)
    {
       return type::n_view_<0>(icode);
    }
 
-   /**
-    * @brief returns this range code; or the range code for [1, icode]
-    */
+   // returns this range code; or the range code for [1, icode]
    static constexpr code_t _1(code_t icode)
    {
       return type::n_view_<1>(icode);
    }
 
-   /**
-    * @brief returns the front index
-    */
+   // returns the front index
    constexpr type::itype front() const
    {
       return m_.start_;
    }
 
-   /**
-    * @brief returns the size/length of the range
-    */
+   // returns the size/length of the range
    constexpr type::utype size() const
    {
       return m_.size_;
    }
 
-   /**
-    * @brief returns the coded [front, front + size) range
-    */
+   // returns the coded [front, front + size) range
    constexpr code_t code() const
    {
       return m_.to_code_();
    }
 
-   /**
-    * @brief implicit conversion to code_t type
-    */
+   // implicit conversion to code_t type
    constexpr operator code_t() const
    {
       return code();
    }
 };
-
 using r = range;
 using index_t = r::index_t;
+}
 
-} // namespace fa
+
+//====================================================================//
+
 
 namespace fa {
-namespace detail_dim_ {
-/**
- * @brief compile-time sanity check
- */
-///@{
+namespace detail_d {
 template <char FC>
 struct sanity
 {
    static_assert(FC == 'F' || FC == 'f' || FC == 'C' || FC == 'c', "");
 };
+
 
 template <>
 struct sanity<'F'>
@@ -278,11 +251,13 @@ struct sanity<'F'>
    static constexpr char fc = 'f';
 };
 
+
 template <>
 struct sanity<'f'>
 {
    static constexpr char fc = 'f';
 };
+
 
 template <>
 struct sanity<'C'>
@@ -290,12 +265,16 @@ struct sanity<'C'>
    static constexpr char fc = 'c';
 };
 
+
 template <>
 struct sanity<'c'>
 {
    static constexpr char fc = 'c';
 };
-///@}
+
+
+//====================================================================//
+
 
 /**
  * @brief compile-time product of the coded range size
@@ -710,23 +689,15 @@ public:
    }
    ///@}
 };
-} // namespace detail_dim_
+}
+}
 
-/**
- * @brief c/c++ array analog
- */
-template <class T, r::code_t... NN>
-class tensor : public detail_dim_::fdms_<'c', T, r::_0(NN)...>
-{};
 
-/**
- * @brief fortran array analog
- */
-template <class T, r::code_t... NN>
-class dimension : public detail_dim_::fdms_<'f', T, r::_1(NN)...>
-{};
+//====================================================================//
 
-namespace detail_alcb_ {
+
+namespace fa {
+namespace detail_a {
 /**
  * @brief filling an array with the given variadic arguments
  */
@@ -945,8 +916,8 @@ struct ad
    void reserve_impl(SS... ss)
    {
       assert(allocated() == false);
-      copy_dims<detail_dim_::sanity<FC>::fc, sizeof...(BB), SS...>::exec(dims_,
-                                                                         ss...);
+      copy_dims<detail_d::sanity<FC>::fc, sizeof...(BB), SS...>::exec(dims_,
+                                                                      ss...);
       data_ = new T[size()];
    }
 };
@@ -1105,18 +1076,21 @@ struct aimpl<T, B, BB...> : public ad<T, B, BB...>
    }
 };
 ///@}
-} // namespace detail_alcb_
+}
+}
 
+
+namespace fa {
 /**
  * @brief fortran allocatable analog
  * @tparam T       the type of the elements stored in the allocatable
  * @tparam BEGINS  the x-based array index for each fortran dimension
  */
 template <class T, int... BEGINS>
-class allocatable : private detail_alcb_::aimpl<T, BEGINS...>
+class allocatable : private detail_a::aimpl<T, BEGINS...>
 {
 private:
-   using impl_t = detail_alcb_::aimpl<T, BEGINS...>;
+   using impl_t = detail_a::aimpl<T, BEGINS...>;
 
 public:
    allocatable()
@@ -1345,6 +1319,19 @@ public:
       return data()[fortran_index(ss...)];
    }
 };
-} // namespace fa
 
-#endif /* FortranArray_h */
+
+/**
+ * @brief c/c++ array analog
+ */
+template <class T, r::code_t... NN>
+class tensor : public detail_d::fdms_<'c', T, r::_0(NN)...>
+{};
+
+/**
+ * @brief fortran array analog
+ */
+template <class T, r::code_t... NN>
+class dimension : public detail_d::fdms_<'f', T, r::_1(NN)...>
+{};
+}
